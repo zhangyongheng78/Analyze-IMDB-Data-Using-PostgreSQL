@@ -62,12 +62,14 @@ knownForTitles VARCHAR(100));
 
 
 a)
+-- How many titles are there in the IMDB database
 COPY (
 SELECT COUNT(DISTINCT S.tconst) 
 FROM titlebasics S) 
 TO ‘/Users/yonghengzhang/Desktop/hw1ANS/a.txt';
 
 b)
+-- All of the title start years in the IMDB database along with the number of titlesthat started in each of those years
 COPY (
 SELECT S.startyear, COUNT(DISTINCT S.tconst) 
 FROM titlebasics S 
@@ -77,6 +79,8 @@ TO ‘/Users/yonghengzhang/Desktop/hw1ANS/b.txt';
 
 
 c)
+-- For the titles that started in or after 2016: start years along with the number of titles that started in each of those years, also the
+-- minimum, maximum, and average title runtime in minutes by year.
 COPY (
 SELECT S.startyear, COUNT(DISTINCT S.tconst),MIN(S.runtimeminutes),MAX(S.runtimeminutes),AVG(S.runtimeminutes)
 FROM titlebasics S
@@ -86,9 +90,11 @@ TO '/Users/yonghengzhang/Desktop/hw1ANS/c.txt';
 
 
 d)
+-- Some of the start years are in the future?!
 That means those titles are going to be played in the future
 
 e)
+-- Information about the title with the longest overall runtime,
 COPY (
 SELECT S.titletype,S.primarytitle,S.startyear,S.endyear,S.runtimeminutes,S.genres
 FROM titlebasics S
@@ -96,12 +102,14 @@ WHERE S.runtimeminutes  = (SELECT MAX(S2.runtimeminutes) FROM titlebasics S2))
 TO '/Users/yonghengzhang/Desktop/hw1ANS/e.txt';
 
 f)
+-- How many distinct values does this genres field have?
 COPY(
 SELECT COUNT(DISTINCT genres)
 FROM titlebasics S
 TO '/Users/yonghengzhang/Desktop/hw1ANS/f.txt';
 
 g)
+-- List the title id, primary name, and genres list for each title whose runtime is exactly 15 hours long.
 COPY(
 SELECT S.tconst,S.primarytitle,string_to_array(S.genres,',')
 FROM titlebasics S
@@ -109,6 +117,7 @@ WHERE S.runtimeminutes = 900)
 TO '/Users/yonghengzhang/Desktop/hw1ANS/g.txt';
 
 h)
+-- Create a normalized (1NF) list with the id, name, and genre of each of those 15-hour titles.
 COPY(
 SELECT S.tconst,S.primarytitle,genre
 FROM titlebasics S,UNNEST(string_to_array(S.genres,',')) AS genre
@@ -117,12 +126,14 @@ ORDER BY S.tconst)
 TO '/Users/yonghengzhang/Desktop/hw1ANS/h.txt';
 
 i)
+-- How many distinct genre values does the data set really have?
 COPY(
 SELECT COUNT(DISTINCT genre)
 FROM titlebasics S, UNNEST(string_to_array(S.genres,',')) AS genre)
 TO '/Users/yonghengzhang/Desktop/hw1ANS/i.txt';
 
 j)
+-- Listing all of the distinct genre values along with the number of titles associated with that genre;
 COPY(
 SELECT genre,COUNT(DISTINCT S.tconst)
 FROM titlebasics S, UNNEST(string_to_array(S.genres,',')) AS genre
@@ -131,6 +142,7 @@ ORDER BY COUNT(DISTINCT S.tconst))
 TO '/Users/yonghengzhang/Desktop/hw1ANS/j.txt';
 
 k)
+-- The information recorded about each person whose first name or last name is ‘Trump’
 COPY(
 SELECT N.nconst,N.primaryname,N.birthyear,N.deathyear,N.primaryprofession,N.knownfortitles
 FROM namebasics N, split_part(N.primaryname, ' ', 1) AS col1, split_part(N.primaryname, ' ', 2) AS col2, split_part(N.primaryname, ' ', 3) AS col3
@@ -139,6 +151,7 @@ To '/Users/yonghengzhang/Desktop/hw1ANS/k.txt';
 
 
 L)
+-- List (in a normalized form) the person name, show types, titles, and start years for the shows that Trumps who were born no later than 1970 are best known for.
 COPY(
 WITH TRUMP as (                                                                                                                      
 SELECT N.primaryname,N.birthyear,N.knownfortitles                                                                                          
@@ -153,6 +166,7 @@ To '/Users/yonghengzhang/Desktop/hw1ANS/L.txt';
 
 
 M)
+-- List the IMDB information about the first Spider-Man movie
 COPY(
 \timing
 SELECT *
@@ -172,6 +186,7 @@ WHERE S.primarytitle = 'Spider-Man' and S.titleType = 'movie'
 Time: 0.597 ms
 
 N)
+-- List the person name, birth year, and primary profession for those persons who are known for being in the first Spider-Man movie and who are just actresses
 COPY(
 SELECT N.primaryname,N.birthyear,N.primaryprofession
 FROM titlebasics S, namebasics N, unnest(string_to_array(N.knownfortitles, ',')) as knowntitle
@@ -179,6 +194,8 @@ WHERE N.primaryprofession = 'actress' and knowntitle = S.tconst and S.primarytit
 To '/Users/yonghengzhang/Desktop/hw1ANS/N.txt';
 
 O)
+-- Producing a list of the birth years of people known for that movie who have ‘actress’ listed as being one of their (possibly multiple) primary professions; for each birth year, list the
+number of actresses who were born in that year.
 COPY(
 SELECT N.birthyear,COUNT(*)
 FROM titlebasics S, namebasics N, unnest(string_to_array(N.knownfortitles, ',')) as knowntitle, unnest(string_to_array(N.primaryprofession, ',')) as primaryprof
