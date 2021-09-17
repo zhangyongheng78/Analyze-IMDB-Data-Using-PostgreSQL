@@ -80,7 +80,7 @@ tmdbid INTEGER);
 \COPY links FROM '/Users/yonghengzhang/Desktop/ml-latest/links.csv' HEADER csv DELIMITER ',' Null '';
 -- COPY 58098
 
--- a)
+-- a) one piece of MovieLens information that’s currently embedded in a place where it doesn’t belong
 CREATE VIEW QUESTION3a AS
 SELECT movieid,
 CASE
@@ -98,7 +98,7 @@ AS year,
 genres
 FROM movies;
 
--- b)
+-- b) extracting (“lifting”) the contents of one field into a few separate fields for subsequent use and analysis.
 CREATE VIEW QUESTION3b AS
 SELECT nconst,substring(primaryname from '[^\s]+') AS firstname,TRIM(substring(primaryname from ' [^\s]+ ')) AS middlename,
 CASE 
@@ -112,7 +112,7 @@ birthyear,deathyear,primaryprofession,knownfortitles
 FROM namebasics N
 
 
--- c)
+-- c) Create views for the two tables that show the timestamp values in a "human readable" format.
 CREATE VIEW QUESTION3c_ratings AS
 SELECT userid,movieid,rating, TO_TIMESTAMP(timestamp) AT TIME ZONE 'UTC' AS time
 FROM ratings
@@ -124,7 +124,7 @@ FROM tags
 
 
 
--- d)
+-- d) how (and why) one might choose to aggregate its ratings if one wanted it to potentially be combinable with the IMDB rating information.
 CREATE VIEW QUESTION3d AS
 SELECT movieid,count(movieid) AS numvotes, ROUND((SUM(rating)/count(movieid)),1) AS averagerating
 FROM ratings
@@ -135,7 +135,7 @@ GROUP BY movieid
 -- We can combine the rating file with the title.ratings file
 -- in the IMDB table
 
--- e)
+-- e) The movies table, as provided, would likely be the most problematic MovieLens data set to analyze with SQL in its current form.
 -- The year of the movies is embedded in a wrong place called title
 -- The column called genre is not atomic
 
@@ -147,7 +147,7 @@ ORDER BY movieid
 
 
 -- f)
--- i)
+-- i) Which is the TMDB ID that is not missing (or null) and repeats the most?
 SELECT tmdbid,COUNT(*) AS count 
 FROM links 
 WHERE tmdbid IS NOT NULL 
@@ -156,21 +156,21 @@ ORDER BY count DESC 1;
 
 -- tmdbid 141971 repeats the most
 
--- ii)
+-- ii) What movie names are associated with that ID in the MovieLens dataset?
 SELECT *
 FROM links l, movies m
 WHERE l.tmdbid = 141971 AND l.movieid = m.movieid;
 
--- iii)
+-- iii) Why are TMDB IDs not unique here
 -- Maybe the tmdbid stays the same when the movie names have
 -- different production years and different genres, but same names.
 
--- iv)
+-- iv) other information
 SELECT * 
 FROM titlebasics 
 WHERE tconst ='tt1180333' OR tconst ='tt0844666' OR tconst ='tt0822791';
 
--- g)
+-- g) creating a view whose columns include an id (e.g., the tconst) and title for each movie along with review information (in separate columns) from both IMDB and MovieLens.
 CREATE VIEW QUESTION3g AS
 SELECT movieid,imdbid,tmdbid,concat('tt', repeat('0',(7-length(cast(imdbid as varchar)))),imdbid) AS tconst
 FROM links;
@@ -207,7 +207,7 @@ UNION ALL
 SELECT NULL tconst, movieid, title, Movielens_numvotes, Movielens_averagerating,  NULL IMDB_numvotes,NULL IMDB_averagerating,Combined_Review 
 FROM TABLE3;
 
--- h)
+-- h) Materialize each of the views for future use
 CREATE TABLE question3a_table(
 movieid INTEGER,
 title VARCHAR,
